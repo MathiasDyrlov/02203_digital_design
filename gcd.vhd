@@ -26,22 +26,6 @@ end gcd;
 
 architecture fsmd of gcd is
 
-component Talker_str is
-    Port ( clkt : in STD_LOGIC;
-           resett : in STD_LOGIC;
-           ack_in : in STD_LOGIC;
-           start : in STD_LOGIC;
-           ready : out STD_LOGIC;
-           req_out : out STD_LOGIC);
-end component Talker_str;
-
-component Listener_str is
-    Port ( clkl : in STD_LOGIC;
-           resetl : in STD_LOGIC;
-           req_in : in STD_LOGIC;
-           ack_out : out STD_LOGIC);
-end component Listener_str;
-
   type state_type is (Idle, LoadA, LoadB, Check, NewA, NewB, LoadC, CZ); -- Input your own state names
 
   signal ack_sig, ready_sig, req_sig : STD_LOGIC;
@@ -52,11 +36,6 @@ end component Listener_str;
 
 
 begin
-
-U0: talker_str port map(clkt => clk, resett => reset, ack_in => ack_sig, 
-            start => req, ready => ready_sig,req_out => req_sig);
-
-U1: Listener_str port map(clkl => clk, resetl => reset, req_in => req_sig, ack_out => ack_sig);
 
   -- Combinatoriel logic
 

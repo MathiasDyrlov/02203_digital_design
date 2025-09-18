@@ -26,7 +26,7 @@ end gcd;
 
 architecture fsmd of gcd is
 
-  type state_type is (Idle, LoadA, LoadB, Check, NewA, NewB, LoadC); -- Input your own state names
+  type state_type is (Idle, LoadA, LoadB, Check, NewA, NewB, LoadC, AckA, wait_req); -- Input your own state names
 
   signal reg_a, next_reg_a, next_reg_b, reg_b : unsigned(15 downto 0);
 
@@ -39,31 +39,36 @@ begin
 
   cl : process (req,ab,state,reg_a,reg_b, reset)
   begin
+  next_reg_a <= reg_a;
+  next_reg_b <= reg_b;
+  ack <= '0';
+  C <= (others => 'Z');
+  next_state <= state;
+   
     case (state) is
         when Idle =>
-            ack <= '0';
-            next_reg_a <= x"0000";
-            next_reg_b <= x"0000";
-            C <= (others => 'Z');
             if req = '1' then
                 next_state <= LoadA;
             end if;
         
         when LoadA =>
+            next_reg_a <= AB;
+            next_state <= AckA;
+                
+        when AckA =>
+            ack <= '1';
+            if req = '0' then
+                next_state <= wait_req;
+            end if;
+            
+        when wait_req =>
             if req = '1' then
-                next_reg_a <= AB;
-                ack <= '1';
-            elsif req = '0' then
                 next_state <= loadB;
-                ack <= '0';
             end if;
             
         when LoadB =>
-            if req <= '1' then
-                next_reg_b <= AB;
-                next_state <= check;
-            end if;
-            
+            next_reg_b <= AB;
+            next_state <= check;
         
         when Check =>
             if Reg_A = Reg_B then
@@ -85,7 +90,9 @@ begin
         when LoadC =>
             ack <= '1';
             C <= Reg_A;
-            next_state <= idle; 
+            if req = '0' then 
+                next_state <= idle;
+            end if;
         
         when others =>
             next_state <= idle;   

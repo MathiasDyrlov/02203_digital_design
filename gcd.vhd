@@ -26,7 +26,7 @@ end gcd;
 
 architecture fsmd of gcd is
 
-  type state_type is (Idle, LoadA, LoadB, Check, NewA, NewB, LoadC, CZ); -- Input your own state names
+  type state_type is (Idle, LoadA, LoadB, Check, NewA, NewB, LoadC); -- Input your own state names
 
   signal reg_a, next_reg_a, next_reg_b, reg_b : unsigned(15 downto 0);
 
@@ -37,11 +37,14 @@ begin
 
   -- Combinatoriel logic
 
-  cl : process (req,ab,state,reg_a,reg_b,reset)
+  cl : process (req,ab,state,reg_a,reg_b, reset)
   begin
     case (state) is
         when Idle =>
             ack <= '0';
+            next_reg_a <= x"0000";
+            next_reg_b <= x"0000";
+            C <= (others => 'Z');
             if req = '1' then
                 next_state <= LoadA;
             end if;
@@ -82,11 +85,10 @@ begin
         when LoadC =>
             ack <= '1';
             C <= Reg_A;
-            next_state <= CZ;
+            next_state <= idle; 
         
-        when CZ =>
-            C <= (others => 'Z');
-            next_state <= idle;
+        when others =>
+            next_state <= idle;   
 
     end case;
   end process cl;

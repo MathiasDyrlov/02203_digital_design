@@ -43,7 +43,8 @@ begin
   next_reg_a <= reg_a;
   next_reg_b <= reg_b;
   ack <= '0';
-  C <= (others => 'Z');
+  C <= (others => '0'); -- default
+
 
   case (state) is
 

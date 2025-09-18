@@ -72,18 +72,19 @@ U1: Listener_str port map(clkl => clk, resetl => reset, req_in => req_sig, ack_o
             end if;
         
         when LoadA =>
-            ack <= ack_sig;
-            if falling_edge(ack_sig) then
-                next_state <= loadB;
-            elsif req = '1' then
+            if req = '1' then
                 next_reg_a <= AB;
-            else 
-                next_state <= next_state;
+                ack <= '1';
+            elsif req = '0' then
+                next_state <= loadB;
+                ack <= '0';
             end if;
             
         when LoadB =>
-            next_Reg_B <= AB;
-            next_state <= Check;
+            if req <= '1' then
+                next_reg_b <= AB;
+                next_state <= check;
+            end if;
             
         
         when Check =>

@@ -1,0 +1,131 @@
+-- -----------------------------------------------------------------------------
+--
+--  Title      :  FSMD implementation of GCD
+--             :
+--  Developers :  Jens Sparsø, Rasmus Bo Sørensen and Mathias Møller Bruhn
+--           :
+--  Purpose    :  This is a FSMD (finite state machine with datapath) 
+--             :  implementation the GCD circuit
+--             :
+--  Revision   :  02203 fall 2019 v.5.0
+--
+--  Modified   :  19-09-2025 to only contain FSM
+-- -----------------------------------------------------------------------------
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+
+entity FSM is
+  port (clk : in std_logic;             -- The clock signal.
+    reset : in  std_logic;              -- Reset the module.
+    req   : in  std_logic;              -- Input operand / start computation.
+    AB    : in  unsigned(15 downto 0);  -- The two operands.
+    N     : in std_logic;
+    Z     : in std_logic;
+    ABorALU : out std_logic;
+    LDA   : out std_logic;
+    LDB   : out std_logic;
+    ack   : out std_logic;              -- Computation is complete.
+    FN    : out unsigned(1 downto 0)); -- The result.
+end FSM;
+
+architecture fsm of FSM is
+
+  type state_type is (Idle, LoadA, LoadB, Check, NewA, NewB, LoadC, Req0); -- Input your own state names
+
+  signal state, next_state : state_type;
+
+
+begin
+
+  -- Combinatoriel logic
+
+cl : process (req, ab, state)
+begin
+  next_state <= state;
+  ack <= '0';
+  LDA <= '0';
+  LDB <= '0';
+  ABorALU <= '0';
+  FN <= "00";
+
+
+  case (state) is
+
+    when Idle =>
+      if req = '1' then
+        next_state <= LoadA;
+      end if;
+
+    -- State to load A, sets ack high
+    when LoadA =>
+      LDA <= '1';
+      ABorALU <= '1';
+      ack <= '1';
+      if req = '0' then
+      next_state <= Req0;
+      end if;
+
+      
+     -- State to set ack 0 and check for req again
+     when Req0 =>
+       ack <= '0';
+       if req = '1' then
+       next_state <= LoadB;
+       end if;
+
+    -- Load B value
+    when LoadB =>
+      LDB <= '1';
+      ABorALU <= '1';
+      next_state <= Check;
+
+    -- Check relationship between A and B
+    when Check =>
+      if Z = '1' then
+        next_state <= LoadC;
+      elsif N = '1' then
+        next_state <= NewB;
+      else
+        next_state <= NewA;
+      end if;
+
+    -- Subtract B from A
+    when NewA =>
+      FN <= "00";
+      next_state <= Check;
+
+    -- Subtract A from B
+    when NewB =>
+      FN <= "01";
+      next_state <= Check;
+
+    -- Drive C with GCD result and assert ack
+    when LoadC =>
+      FN <= "10";
+      ack <= '1';
+      if req = '0' then
+      next_state <= Idle;
+      end if;
+
+   
+
+  end case;
+end process cl;
+
+
+  -- Registers
+
+  seq : process (clk, reset)
+  begin
+    if reset = '1' then
+        state <= idle;
+    elsif clk' event and clk = '1' then
+        state <= next_state;
+    end if;
+
+  end process seq;
+
+
+end fsm;

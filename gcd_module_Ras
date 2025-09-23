@@ -1,0 +1,78 @@
+----------------------------------------------------------------------------------
+-- Company: 
+-- Engineer: 
+-- 
+-- Create Date: 11.09.2025 10:59:47
+-- Design Name: 
+-- Module Name: gcd_module - Behavioral
+-- Project Name: 
+-- Target Devices: 
+-- Tool Versions: 
+-- Description: 
+-- 
+-- Dependencies: 
+-- 
+-- Revision:
+-- Revision 0.01 - File Created
+-- Additional Comments:
+-- 
+----------------------------------------------------------------------------------
+
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.NUMERIC_STD.ALL;
+
+-- Uncomment the following library declaration if using
+-- arithmetic functions with Signed or Unsigned values
+--use IEEE.NUMERIC_STD.ALL;
+
+-- Uncomment the following library declaration if instantiating
+-- any Xilinx leaf cells in this code.
+--library UNISIM;
+--use UNISIM.VComponents.all;
+
+entity gcd_module is
+    generic( n: integer);
+    Port (clk: in std_logic;
+        reset : in std_logic;   -- Reset the module.
+		req : in std_logic;   -- Input operand / Start computation..
+		AB : in unsigned(15 downto 0);
+        ack : out std_logic;
+        C : out unsigned(15 downto 0));
+end gcd_module;
+
+architecture structural of gcd_module is
+
+signal N_int, Z_int, LDA_int, LDB_int, ABorALU_int : std_logic;
+signal FN_int : unsigned(1 downto 0);
+
+component datapath is
+    Port (clk : in std_logic;
+        AB : in unsigned(15 downto 0);
+        ABorALU : in std_logic;
+        LDA : in std_logic;
+        LDB : in std_logic;
+        FN : in unsigned(1 downto 0);
+        N, Z : out std_logic;
+        C : out unsigned(15 downto 0));
+end component;
+
+component FSM is
+    port (clk : in std_logic;             -- The clock signal.
+        reset : in  std_logic;              -- Reset the module.
+        req   : in  std_logic;              -- Input operand / start computation.
+        AB    : in  unsigned(15 downto 0);  -- The two operands.
+        N     : in std_logic;
+        Z     : in std_logic;
+        ABorALU : out std_logic;
+        LDA   : out std_logic;
+        LDB   : out std_logic;
+        ack   : out std_logic;              -- Computation is complete.
+        FN    : out unsigned(1 downto 0)); -- The result.
+end component;
+
+begin   --mapping
+U0: datapath PORT MAP (clk => clk, AB => AB, N => N_int, Z => Z_int, LDA => LDA_int, LDB => LDB_int, ABorALU => ABorALU_int, C => C, FN => FN_int);
+U1: FSM PORT MAP (clk => clk, reset => reset, req => req, AB => AB, N => N_int, Z => Z_int, ABorALU => ABorALU_int, LDA => LDA_int, LDB => LDB_int, ack => ack, FN => FN_int);
+end structural;

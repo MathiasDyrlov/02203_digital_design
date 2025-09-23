@@ -1,0 +1,87 @@
+----------------------------------------------------------------------------------
+-- Company: 
+-- Engineer: 
+-- 
+-- Create Date: 11.09.2025 11:40:03
+-- Design Name: 
+-- Module Name: datapath - Behavioral
+-- Project Name: 
+-- Target Devices: 
+-- Tool Versions: 
+-- Description: 
+-- 
+-- Dependencies: 
+-- 
+-- Revision:
+-- Revision 0.01 - File Created
+-- Additional Comments:
+-- 
+----------------------------------------------------------------------------------
+
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
+-- Uncomment the following library declaration if using
+-- arithmetic functions with Signed or Unsigned values
+use IEEE.NUMERIC_STD.ALL;
+
+-- Uncomment the following library declaration if instantiating
+-- any Xilinx leaf cells in this code.
+--library UNISIM;
+--use UNISIM.VComponents.all;
+
+entity datapath is
+    Port ( clk : in std_logic;
+        AB : in unsigned(15 downto 0);
+        ABorALU : in std_logic;
+        LDA : in std_logic;
+        LDB : in std_logic;
+        FN : in unsigned(1 downto 0);
+        N, Z : out std_logic;
+        C : out unsigned(15 downto 0)
+   );
+end datapath;
+
+architecture structural of datapath is
+
+signal C_int, Y, A_int, B_int : unsigned(15 downto 0);
+
+component buf is
+    generic (N:     natural := 16);				-- width of inputs.
+    port (data_in:  in  unsigned(N downto 1);	-- input.
+          data_out: out unsigned(N downto 1));	-- output.
+end component;
+
+component mux is
+    port (data_in1:  in  unsigned(15 downto 0);	-- inputs.
+          data_in2:  in unsigned(15 downto 0);
+          s       :  in std_logic;				-- select signal.
+          data_out:  out  unsigned(15 downto 0)	-- output.
+          );
+end component;
+
+component alu is
+    port (A, B:     in unsigned(15 downto 0);			-- input operands.
+          fn:       in unsigned(1 downto 0); 	-- function.
+          C:        out unsigned(15 downto 0);			-- result.
+          Z:        out std_logic;          			-- result = 0 flag.
+          N:        out std_logic);         			-- result neg flag.
+end component;
+
+component reg is
+    port (clk:      in  std_logic;				-- clock signal.
+          en:       in  std_logic;				-- enable signal.
+          data_in:  in  unsigned(15 downto 0);	-- input data.
+          data_out: out unsigned(15 downto 0));	-- output data.
+end component;
+
+
+begin
+-- mapping
+U0: mux PORT MAP (data_in2 => AB, data_in1 => Y, s => ABorALU, data_out => C_int);
+U1: reg PORT MAP (clk => clk, data_in => C_int, data_out => A_int, en => LDA);
+U2: reg PORT MAP (clk => clk, data_in => C_int, data_out => B_int, en => LDB);
+U3: alu PORT MAP (A => A_int, B => B_int, fn =>FN, C => Y, N => N, Z => Z);
+U4: buf PORT MAP (data_in => C_int, data_out => C);
+end structural;

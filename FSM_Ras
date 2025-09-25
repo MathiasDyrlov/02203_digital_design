@@ -48,7 +48,6 @@ begin
   LDA <= '0';
   LDB <= '0';
   ABorALU <= '0';
-  FN <= "00";
 
 
   case (state) is
@@ -83,20 +82,18 @@ begin
 
     -- Check relationship between A and B
     when Check =>
-      if Z = '1' then
-        next_state <= LoadC;
-      elsif N = '1' then
-        next_state <= NewB;
-      else
-        next_state <= NewA;
-      end if;
+      FN <= "00";
+      next_state <= NewA;
 
     -- Subtract B from A
     when NewA =>
-      FN <= "00";
-      
-      next_state <= LoadNewA;
-      
+      if N = '1' then
+        next_state <= NewB;
+      elsif Z = '1' then
+        next_state <= LoadC;
+      else
+        next_state <= LoadNewA;
+      end if;
     
     when LoadNewA =>
       ABorALU <= '0';

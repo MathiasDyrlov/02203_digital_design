@@ -10,7 +10,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-entity gcd is
+entity gcd_binary is
   port (
     clk   : in  std_logic;               -- Clock signal
     reset : in  std_logic;               -- Reset
@@ -19,9 +19,9 @@ entity gcd is
     ack   : out std_logic;               -- Computation complete
     C     : out unsigned(15 downto 0)    -- GCD result
   );
-end gcd;
+end gcd_binary;
 
-architecture fsmd of gcd is
+architecture fsmd of gcd_binary is
 
   type state_type is (
     Idle, LoadA, LoadB, Req0, Check, 
